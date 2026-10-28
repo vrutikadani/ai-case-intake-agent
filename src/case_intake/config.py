@@ -38,5 +38,3 @@ class Settings:
     )
     auto_reply_headers: tuple[str, ...] = ("auto-submitted", "x-autoreply", "x-autorespond")
 
-    # Customer -> owner routing; anything not listed goes to the shared queue.
-    default_owner: str = "ar-shared-queue"

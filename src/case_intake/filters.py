@@ -28,10 +28,13 @@ def prefilter(email: Email, settings: Settings) -> Optional[str]:
             return f"non-case sender ({prefix})"
 
     subject = email.subject.strip().lower()
-    subject = re.sub(r"^((re|fw|fwd):\s*)+", "", subject)
-    for pattern in settings.routine_subject_patterns:
-        if re.search(pattern, subject):
-            return f"routine subject ({pattern})"
+    # Subject rules only apply to original messages. A person replying to a
+    # remittance or a report ("RE: Remittance advice ...") may be raising the
+    # very issue we want; the classifier decides those.
+    if not re.match(r"^(re|fw|fwd):", subject):
+        for pattern in settings.routine_subject_patterns:
+            if re.search(pattern, subject):
+                return f"routine subject ({pattern})"
 
     if not email.body.strip() and not email.subject.strip():
         return "empty message"
