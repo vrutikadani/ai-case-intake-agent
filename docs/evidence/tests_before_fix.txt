@@ -1,0 +1,7 @@
+FAILED tests/test_normalization.py::test_order_formats_normalize_to_one_id[Invoice 38262]
+FAILED tests/test_normalization.py::test_customer_formats_normalize_to_one_id[Cust #010442]
+FAILED tests/test_normalization.py::test_customer_formats_normalize_to_one_id[Customer 10442]
+FAILED tests/test_normalization.py::test_customer_formats_normalize_to_one_id[customer id: 010442]
+FAILED tests/test_pipeline.py::test_routine_report_is_ignored_before_the_model
+FAILED tests/test_pipeline.py::test_new_case_created_with_normalized_key - As...
+6 failed, 48 passed in 0.08s
