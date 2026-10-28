@@ -1,0 +1,41 @@
+name: CI
+on:
+  push:
+    branches: [main]
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python: ["3.11", "3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: ${{ matrix.python }}
+      - run: pip install -r requirements-dev.txt
+      - name: Tests
+        run: python -m pytest -q
+      - name: Fixtures are reproducible
+        run: |
+          python scripts/build_fixtures.py
+          git diff --exit-code fixtures evals/expected_results.json
+      - name: Committed replay report is current
+        run: python evals/replay.py --check
+      - name: Demo manifest is current
+        run: |
+          python scripts/build_manifest.py
+          git diff --exit-code demo/manifest.json
+      - name: Package is standard library only (the browser demo depends on it)
+        run: |
+          if grep -rnE "^(from|import) " src/case_intake --include=*.py | grep -vE "from (\.|__future__)|import (json|re|os|copy)$|import (json|re|os|copy)\b|from (dataclasses|datetime|enum|typing|collections|pathlib) "; then
+            echo "non-stdlib import"; exit 1
+          fi
+      - name: No real-looking secrets or internal domains
+        run: |
+          if grep -rniE "sharepoint\.com|onmicrosoft\.com|tenant[_-]?id|api[_-]?key\s*=|sk-[a-z0-9]{20}" --exclude-dir=.git --exclude=ci.yml .; then
+            echo "possible secret or internal URL"; exit 1
+          fi

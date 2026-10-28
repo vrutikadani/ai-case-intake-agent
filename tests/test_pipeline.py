@@ -230,3 +230,10 @@ def test_malformed_identifier_is_named_in_the_review_reason(make_ctx):
     ctx = make_ctx(cases=[], outputs={"evt-1": model(cust="22610", order="7O315")})
     r = process_event(email(body="Invoice 7O315 (customer 22610) has the wrong freight amount."), ctx)
     assert r.decision == Decision.REVIEW and "malformed" in r.reason
+
+
+def test_missing_tracker_schema_stops_before_any_event():
+    import pytest
+    from case_intake.tracker import REQUIRED_FIELDS, CaseTracker, TrackerSchemaError
+    with pytest.raises(TrackerSchemaError):
+        CaseTracker([], schema=tuple(f for f in REQUIRED_FIELDS if f != "history"))
