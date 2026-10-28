@@ -215,3 +215,12 @@ def test_every_event_gets_exactly_one_audit_record(make_ctx):
     recs = ctx.audit.records()
     assert [r.event_id for r in recs] == ["evt-1", "evt-2"]
     assert all(r.timestamp == NOW for r in recs)
+
+
+def test_human_reply_to_routine_mail_still_reaches_the_classifier(make_ctx):
+    # A customer replying to a remittance email to dispute a deduction is a case.
+    ctx = make_ctx(cases=[], outputs={"evt-1": model(cust="22610", order="70288")})
+    r = process_event(email(subject="RE: Remittance advice 2026-10-05",
+                            body="Customer 22610: your remittance shows invoice 70288 short-paid. We dispute the deduction."), ctx)
+    assert r.audit.model_called
+    assert r.decision == Decision.CREATE_CASE
