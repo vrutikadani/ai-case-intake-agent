@@ -1,0 +1,159 @@
+{
+  "classification_accuracy": 0.857,
+  "daily_summary": {
+    "decisions": {
+      "CREATE_CASE": 2,
+      "HOLD": 1,
+      "IGNORE": 7,
+      "REVIEW": 14,
+      "UPDATE_CASE": 3
+    },
+    "dry_run": false,
+    "events": 27,
+    "failures": [
+      {
+        "event_id": "evt-1020",
+        "reason": "classifier unavailable (model unavailable (recorded)); event left for retry"
+      }
+    ],
+    "ignored_before_model": 4,
+    "model_calls": 23,
+    "new_cases": [
+      {
+        "case_key": "58003|66120",
+        "event_id": "evt-1008",
+        "owner": "collections-team-b"
+      },
+      {
+        "case_key": "7781|90551",
+        "event_id": "evt-1024",
+        "owner": "ar-shared-queue"
+      }
+    ],
+    "review_queue": [
+      {
+        "event_id": "evt-1001",
+        "reason": "order 81537 has no open case and no customer ID was found, so a new case cannot be keyed (thread not seen before)"
+      },
+      {
+        "event_id": "evt-1005",
+        "reason": "no order or invoice ID; thread not seen before"
+      },
+      {
+        "event_id": "evt-1007",
+        "reason": "2 open cases share order 70315"
+      },
+      {
+        "event_id": "evt-1014",
+        "reason": "no customer and order IDs; thread not seen before"
+      },
+      {
+        "event_id": "evt-1016",
+        "reason": "classifier confidence 0.55 below 0.75"
+      },
+      {
+        "event_id": "evt-1017",
+        "reason": "classifier output failed schema validation (not JSON: Expecting value)"
+      },
+      {
+        "event_id": "evt-1018",
+        "reason": "ungrounded order ID from classifier"
+      },
+      {
+        "event_id": "evt-1019",
+        "reason": "suspected prompt injection ('IGNORE ALL PREVIOUS INSTRUCTIONS'); would have been CREATE_CASE"
+      },
+      {
+        "event_id": "evt-1021",
+        "reason": "case 15520|44108 is resolved; reopening is a human decision"
+      },
+      {
+        "event_id": "evt-1022",
+        "reason": "no customer and order IDs; thread mapping is 47 days old (limit 21)"
+      },
+      {
+        "event_id": "evt-1023",
+        "reason": "order 38300 has no open case and no customer ID was found, so a new case cannot be keyed (thread was mapped to order 38262 but this message names 38300)"
+      },
+      {
+        "event_id": "evt-1001",
+        "reason": "order 81537 has no open case and no customer ID was found, so a new case cannot be keyed (thread not seen before)"
+      },
+      {
+        "event_id": "evt-1025",
+        "reason": "no customer and order IDs; thread not seen before"
+      },
+      {
+        "event_id": "evt-1026",
+        "reason": "no order or invoice ID; thread not seen before"
+      }
+    ],
+    "unassigned": [
+      "7781|90551"
+    ],
+    "updated_cases": [
+      {
+        "case_key": "10442|38262",
+        "event_id": "evt-1002",
+        "method": "thread_memory"
+      },
+      {
+        "case_key": "10442|38262",
+        "event_id": "evt-1003",
+        "method": "case_key"
+      },
+      {
+        "case_key": "31877|51094",
+        "event_id": "evt-1006",
+        "method": "order_only"
+      }
+    ]
+  },
+  "decision_accuracy": 0.815,
+  "deterministic_match_accuracy": 1.0,
+  "discarded_before_model": 4,
+  "dry_run_writes": 0,
+  "duplicate_cases_created": 0,
+  "events": 27,
+  "false_positive_writes": [],
+  "mismatches": [
+    {
+      "event_id": "evt-1001",
+      "expected": "CREATE_CASE",
+      "got": "REVIEW",
+      "scenario": "new-case"
+    },
+    {
+      "event_id": "evt-1014",
+      "expected": "IGNORE",
+      "got": "REVIEW",
+      "scenario": "model-false-positive"
+    },
+    {
+      "event_id": "evt-1015",
+      "expected": "CREATE_CASE",
+      "got": "IGNORE",
+      "scenario": "model-false-negative"
+    },
+    {
+      "event_id": "evt-1001",
+      "expected": "IGNORE",
+      "got": "REVIEW",
+      "scenario": "retry-duplicate"
+    },
+    {
+      "event_id": "evt-1025",
+      "expected": "UPDATE_CASE",
+      "got": "REVIEW",
+      "scenario": "reply-to-new-case"
+    }
+  ],
+  "missed_cases": [
+    "evt-1015"
+  ],
+  "model_calls": 23,
+  "model_false_negatives": 1,
+  "model_false_positives": 2,
+  "review_rate": 0.519,
+  "updates_matched_correctly": "3/4"
+}

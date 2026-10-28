@@ -1,0 +1,45 @@
+SYNTHETIC REPLAY VALIDATION (not production metrics)
+
+  events: 27
+  decision_accuracy: 0.815
+  classification_accuracy: 0.857
+  model_false_positives: 2
+  model_false_negatives: 1
+  false_positive_writes: []
+  missed_cases: ['evt-1015']
+  deterministic_match_accuracy: 1.0
+  updates_matched_correctly: 3/4
+  duplicate_cases_created: 0
+  review_rate: 0.519
+  model_calls: 23
+  discarded_before_model: 4
+  dry_run_writes: 0
+
+  expected vs actual decision differences:
+    evt-1001 [new-case]: expected CREATE_CASE, got REVIEW
+    evt-1014 [model-false-positive]: expected IGNORE, got REVIEW
+    evt-1015 [model-false-negative]: expected CREATE_CASE, got IGNORE
+    evt-1001 [retry-duplicate]: expected IGNORE, got REVIEW
+    evt-1025 [reply-to-new-case]: expected UPDATE_CASE, got REVIEW
+
+Case intake summary: 27 emails
+  new cases 2 | updated 3 | review 14 | ignored 7 | held for retry 1
+  model calls 23 (4 emails discarded before the model)
+  Needs review:
+    - evt-1001: order 81537 has no open case and no customer ID was found, so a new case cannot be keyed (thread not seen before)
+    - evt-1005: no order or invoice ID; thread not seen before
+    - evt-1007: 2 open cases share order 70315
+    - evt-1014: no customer and order IDs; thread not seen before
+    - evt-1016: classifier confidence 0.55 below 0.75
+    - evt-1017: classifier output failed schema validation (not JSON: Expecting value)
+    - evt-1018: ungrounded order ID from classifier
+    - evt-1019: suspected prompt injection ('IGNORE ALL PREVIOUS INSTRUCTIONS'); would have been CREATE_CASE
+    - evt-1021: case 15520|44108 is resolved; reopening is a human decision
+    - evt-1022: no customer and order IDs; thread mapping is 47 days old (limit 21)
+    - evt-1023: order 38300 has no open case and no customer ID was found, so a new case cannot be keyed (thread was mapped to order 38262 but this message names 38300)
+    - evt-1001: order 81537 has no open case and no customer ID was found, so a new case cannot be keyed (thread not seen before)
+    - evt-1025: no customer and order IDs; thread not seen before
+    - evt-1026: no order or invoice ID; thread not seen before
+  Held for retry:
+    - evt-1020: classifier unavailable (model unavailable (recorded)); event left for retry
+  New cases with no routing rule (shared queue): 7781|90551

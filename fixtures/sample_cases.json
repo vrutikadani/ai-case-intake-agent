@@ -1,0 +1,106 @@
+{
+ "cases": [
+  {
+   "case_key": "10442|38262",
+   "customer_id": "10442",
+   "order_id": "38262",
+   "customer_name": "Tidewater Supply Co.",
+   "case_type": "pricing_discrepancy",
+   "owner": "collections-team-a",
+   "status": "open",
+   "created_at": "2026-10-01T15:12:00+00:00",
+   "updated_at": "2026-10-01T15:12:00+00:00",
+   "history": [
+    {
+     "at": "2026-10-01T15:12:00+00:00",
+     "event_id": "evt-0921",
+     "summary": "Customer says unit price on SO 38262 is above the quoted price; holding payment."
+    }
+   ]
+  },
+  {
+   "case_key": "31877|51094",
+   "customer_id": "31877",
+   "order_id": "51094",
+   "customer_name": "Pinehill Print Works",
+   "case_type": "missing_documentation",
+   "owner": "collections-team-b",
+   "status": "open",
+   "created_at": "2026-09-29T13:40:00+00:00",
+   "updated_at": "2026-09-29T13:40:00+00:00",
+   "history": [
+    {
+     "at": "2026-09-29T13:40:00+00:00",
+     "event_id": "evt-0874",
+     "summary": "AP needs a PO number on invoice 51094 before it can be approved."
+    }
+   ]
+  },
+  {
+   "case_key": "22610|70315",
+   "customer_id": "22610",
+   "order_id": "70315",
+   "customer_name": "Ashgrove Kitchens",
+   "case_type": "delivery_issue",
+   "owner": "collections-team-a",
+   "status": "open",
+   "created_at": "2026-09-30T10:05:00+00:00",
+   "updated_at": "2026-09-30T10:05:00+00:00",
+   "history": [
+    {
+     "at": "2026-09-30T10:05:00+00:00",
+     "event_id": "evt-0890",
+     "summary": "Two cartons on order 70315 arrived damaged; customer short-paying."
+    }
+   ]
+  },
+  {
+   "case_key": "47731|70315",
+   "customer_id": "47731",
+   "order_id": "70315",
+   "customer_name": "Bellwether Freight",
+   "case_type": "billing_dispute",
+   "owner": "collections-team-b",
+   "status": "open",
+   "created_at": "2026-10-02T09:30:00+00:00",
+   "updated_at": "2026-10-02T09:30:00+00:00",
+   "history": [
+    {
+     "at": "2026-10-02T09:30:00+00:00",
+     "event_id": "evt-0933",
+     "summary": "Freight charge on invoice 70315 disputed (separate billing entity, same number)."
+    }
+   ]
+  },
+  {
+   "case_key": "15520|44108",
+   "customer_id": "15520",
+   "order_id": "44108",
+   "customer_name": "Quarry Lane Builders",
+   "case_type": "credit_hold",
+   "owner": "collections-team-a",
+   "status": "resolved",
+   "created_at": "2026-09-10T08:00:00+00:00",
+   "updated_at": "2026-09-24T16:00:00+00:00",
+   "history": [
+    {
+     "at": "2026-09-10T08:00:00+00:00",
+     "event_id": "evt-0611",
+     "summary": "Account on credit hold until past-due balance cleared."
+    }
+   ]
+  }
+ ],
+ "threads": {
+  "th-tidewater-38262": {
+   "case_key": "10442|38262",
+   "order_id": "38262",
+   "last_seen": "2026-10-01T15:12:00+00:00"
+  },
+  "th-pinehill-old": {
+   "case_key": "31877|51094",
+   "order_id": "51094",
+   "last_seen": "2026-08-20T11:00:00+00:00"
+  }
+ }
+}

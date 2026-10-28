@@ -1,0 +1,362 @@
+[
+ {
+  "_replay_index": 0,
+  "event_id": "evt-1001",
+  "output": {
+   "is_case": true,
+   "reason": "customer is withholding payment over an invoice amount that differs from the quote",
+   "case_type": "pricing_discrepancy",
+   "customer_name": "Saltmarsh Analytics",
+   "customer_id": "Cust #062094",
+   "order_or_invoice_id": "SO-0081537",
+   "summary": "Invoice is $15,850 vs quoted $14,200; payment on hold pending a corrected invoice.",
+   "confidence": 0.93
+  }
+ },
+ {
+  "_replay_index": 1,
+  "event_id": "evt-1002",
+  "output": {
+   "is_case": true,
+   "reason": "follow-up on an existing payment-blocking pricing issue",
+   "case_type": "pricing_discrepancy",
+   "customer_name": null,
+   "customer_id": null,
+   "order_or_invoice_id": null,
+   "summary": "Customer chasing an update on the open pricing issue before month end.",
+   "confidence": 0.82
+  }
+ },
+ {
+  "_replay_index": 2,
+  "event_id": "evt-1003",
+  "output": {
+   "is_case": true,
+   "reason": "payment held until invoice is reissued with the agreed price",
+   "case_type": "pricing_discrepancy",
+   "customer_name": "Tidewater Supply Co.",
+   "customer_id": "C-010442",
+   "order_or_invoice_id": "SO#038262",
+   "summary": "Agreed revised price not applied; payment held.",
+   "confidence": 0.91
+  }
+ },
+ {
+  "_replay_index": 3,
+  "event_id": "evt-1004",
+  "output": {
+   "is_case": false,
+   "reason": "automated report",
+   "case_type": null,
+   "customer_name": null,
+   "customer_id": null,
+   "order_or_invoice_id": null,
+   "summary": "report",
+   "confidence": 0.9
+  }
+ },
+ {
+  "_replay_index": 4,
+  "event_id": "evt-1005",
+  "output": {
+   "is_case": true,
+   "reason": "invoice rejected by customer's AP system for a missing PO",
+   "case_type": "missing_documentation",
+   "customer_name": "Fernway Studios",
+   "customer_id": "Acct 7781",
+   "order_or_invoice_id": null,
+   "summary": "Invoice rejected for missing PO; no invoice number given.",
+   "confidence": 0.88
+  }
+ },
+ {
+  "_replay_index": 5,
+  "event_id": "evt-1006",
+  "output": {
+   "is_case": true,
+   "reason": "invoice cannot be approved without a PO reference",
+   "case_type": "missing_documentation",
+   "customer_name": "Pinehill Print Works",
+   "customer_id": null,
+   "order_or_invoice_id": "51094",
+   "summary": "Invoice 51094 blocked pending PO reference.",
+   "confidence": 0.9
+  }
+ },
+ {
+  "_replay_index": 6,
+  "event_id": "evt-1007",
+  "output": {
+   "is_case": true,
+   "reason": "short payment against invoice pending a credit",
+   "case_type": "billing_dispute",
+   "customer_name": null,
+   "customer_id": null,
+   "order_or_invoice_id": "70315",
+   "summary": "Short payment on invoice 70315 pending credit confirmation.",
+   "confidence": 0.86
+  }
+ },
+ {
+  "_replay_index": 7,
+  "event_id": "evt-1008",
+  "output": {
+   "is_case": true,
+   "reason": "order blocked by a credit hold the customer says is resolved",
+   "case_type": "credit_hold",
+   "customer_name": "Copperline Foods",
+   "customer_id": "account 58003",
+   "order_or_invoice_id": "order 0066120",
+   "summary": "Order blocked by credit hold; customer reports overdue balance paid.",
+   "confidence": 0.92
+  }
+ },
+ {
+  "_replay_index": 8,
+  "event_id": "evt-1009",
+  "output": {
+   "is_case": false,
+   "reason": "auto reply",
+   "case_type": null,
+   "customer_name": null,
+   "customer_id": null,
+   "order_or_invoice_id": null,
+   "summary": "",
+   "confidence": 0.9
+  }
+ },
+ {
+  "_replay_index": 9,
+  "event_id": "evt-1010",
+  "output": {
+   "is_case": false,
+   "reason": "remittance",
+   "case_type": null,
+   "customer_name": null,
+   "customer_id": null,
+   "order_or_invoice_id": null,
+   "summary": "",
+   "confidence": 0.9
+  }
+ },
+ {
+  "_replay_index": 10,
+  "event_id": "evt-1011",
+  "output": {
+   "is_case": false,
+   "reason": "notification",
+   "case_type": null,
+   "customer_name": null,
+   "customer_id": null,
+   "order_or_invoice_id": null,
+   "summary": "",
+   "confidence": 0.9
+  }
+ },
+ {
+  "_replay_index": 11,
+  "event_id": "evt-1012",
+  "output": {
+   "is_case": false,
+   "reason": "thank-you note, no issue",
+   "case_type": null,
+   "customer_name": null,
+   "customer_id": null,
+   "order_or_invoice_id": null,
+   "summary": "thanks",
+   "confidence": 0.95
+  }
+ },
+ {
+  "_replay_index": 12,
+  "event_id": "evt-1013",
+  "output": {
+   "is_case": false,
+   "reason": "general question, nothing blocking",
+   "case_type": null,
+   "customer_name": null,
+   "customer_id": null,
+   "order_or_invoice_id": null,
+   "summary": "",
+   "confidence": 0.9
+  }
+ },
+ {
+  "_replay_index": 13,
+  "event_id": "evt-1014",
+  "output": {
+   "is_case": true,
+   "reason": "possible account issue",
+   "case_type": "other",
+   "customer_name": null,
+   "customer_id": null,
+   "order_or_invoice_id": null,
+   "summary": "Customer asking about account status.",
+   "confidence": 0.78
+  }
+ },
+ {
+  "_replay_index": 14,
+  "event_id": "evt-1015",
+  "output": {
+   "is_case": false,
+   "reason": "routine billing correspondence",
+   "case_type": null,
+   "customer_name": null,
+   "customer_id": null,
+   "order_or_invoice_id": null,
+   "summary": "",
+   "confidence": 0.7
+  }
+ },
+ {
+  "_replay_index": 15,
+  "event_id": "evt-1016",
+  "output": {
+   "is_case": true,
+   "reason": "possible issue, not confirmed",
+   "case_type": "other",
+   "customer_name": null,
+   "customer_id": "62094",
+   "order_or_invoice_id": "82002",
+   "summary": "Possible issue, unconfirmed.",
+   "confidence": 0.55
+  }
+ },
+ {
+  "_replay_index": 16,
+  "event_id": "evt-1017",
+  "output": "Sure! Here is the classification: is_case = yes"
+ },
+ {
+  "_replay_index": 17,
+  "event_id": "evt-1018",
+  "output": {
+   "is_case": true,
+   "reason": "damaged delivery, short payment",
+   "case_type": "delivery_issue",
+   "customer_name": "Copperline Foods",
+   "customer_id": "58003",
+   "order_or_invoice_id": "66191",
+   "summary": "Damaged pallet; short payment.",
+   "confidence": 0.87
+  }
+ },
+ {
+  "_replay_index": 18,
+  "event_id": "evt-1019",
+  "output": {
+   "is_case": true,
+   "reason": "customer cannot pay",
+   "case_type": "payment_blocked",
+   "customer_name": null,
+   "customer_id": "99120",
+   "order_or_invoice_id": "77000",
+   "summary": "Customer cannot pay.",
+   "confidence": 1.0
+  }
+ },
+ {
+  "_replay_index": 19,
+  "event_id": "evt-1020",
+  "output": "__unavailable__"
+ },
+ {
+  "_replay_index": 20,
+  "event_id": "evt-1021",
+  "output": {
+   "is_case": true,
+   "reason": "credit hold blocking payment",
+   "case_type": "credit_hold",
+   "customer_name": "Quarry Lane Builders",
+   "customer_id": "15520",
+   "order_or_invoice_id": "44108",
+   "summary": "Order 44108 back on credit hold.",
+   "confidence": 0.9
+  }
+ },
+ {
+  "_replay_index": 21,
+  "event_id": "evt-1022",
+  "output": {
+   "is_case": true,
+   "reason": "follow-up on blocked invoice",
+   "case_type": "missing_documentation",
+   "customer_name": null,
+   "customer_id": null,
+   "order_or_invoice_id": null,
+   "summary": "Chasing update.",
+   "confidence": 0.8
+  }
+ },
+ {
+  "_replay_index": 22,
+  "event_id": "evt-1023",
+  "output": {
+   "is_case": true,
+   "reason": "second order with wrong price, payment held",
+   "case_type": "pricing_discrepancy",
+   "customer_name": null,
+   "customer_id": null,
+   "order_or_invoice_id": "38300",
+   "summary": "Order 38300 also has the old price; payment held.",
+   "confidence": 0.88
+  }
+ },
+ {
+  "_replay_index": 23,
+  "event_id": "evt-1024",
+  "output": {
+   "is_case": true,
+   "reason": "wrong invoice amount, payment held",
+   "case_type": "billing_dispute",
+   "customer_name": "Fernway Studios",
+   "customer_id": "7781",
+   "order_or_invoice_id": "90551",
+   "summary": "Wrong amount on invoice 90551.",
+   "confidence": 0.9
+  }
+ },
+ {
+  "_replay_index": 24,
+  "event_id": "evt-1001",
+  "output": {
+   "is_case": true,
+   "reason": "duplicate delivery",
+   "case_type": "pricing_discrepancy",
+   "customer_name": "Saltmarsh Analytics",
+   "customer_id": "Cust #062094",
+   "order_or_invoice_id": "SO-0081537",
+   "summary": "duplicate",
+   "confidence": 0.93
+  }
+ },
+ {
+  "_replay_index": 25,
+  "event_id": "evt-1025",
+  "output": {
+   "is_case": true,
+   "reason": "supporting document for the open dispute",
+   "case_type": "pricing_discrepancy",
+   "customer_name": null,
+   "customer_id": null,
+   "order_or_invoice_id": null,
+   "summary": "Customer sent the signed quote.",
+   "confidence": 0.84
+  }
+ },
+ {
+  "_replay_index": 26,
+  "event_id": "evt-1026",
+  "output": {
+   "is_case": true,
+   "reason": "freight amount dispute",
+   "case_type": "billing_dispute",
+   "customer_name": null,
+   "customer_id": "22610",
+   "order_or_invoice_id": "7O315",
+   "summary": "Freight amount disputed.",
+   "confidence": 0.86
+  }
+ }
+]
