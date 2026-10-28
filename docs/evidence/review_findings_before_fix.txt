@@ -1,0 +1,16 @@
+FAILED tests/test_review_findings.py::test_review_is_sticky_on_redelivery - A...
+FAILED tests/test_review_findings.py::test_same_number_cannot_be_customer_and_order
+FAILED tests/test_review_findings.py::test_customer_id_from_a_date_or_amount_is_not_grounded
+FAILED tests/test_review_findings.py::test_swapped_identifiers_are_not_written
+FAILED tests/test_review_findings.py::test_unknown_customer_is_not_created - ...
+FAILED tests/test_review_findings.py::test_new_key_on_an_order_that_already_has_an_open_case_goes_to_review
+FAILED tests/test_review_findings.py::test_subject_cannot_close_the_prompt_fence
+FAILED tests/test_review_findings.py::test_injection_phrasings_force_review
+FAILED tests/test_review_findings.py::test_ordinary_use_of_override_is_not_injection
+FAILED tests/test_review_findings.py::test_naive_timestamp_is_handled_and_audited
+FAILED tests/test_review_findings.py::test_unexpected_error_becomes_an_audited_hold
+FAILED tests/test_review_findings.py::test_thread_mapping_from_the_future_is_not_trusted
+FAILED tests/test_review_findings.py::test_routine_subject_with_a_dispute_in_the_body_reaches_the_model
+FAILED tests/test_review_findings.py::test_extra_output_fields_are_rejected
+FAILED tests/test_review_findings.py::test_more_identifier_formats - Assertio...
+15 failed, 58 passed in 0.14s

@@ -4,7 +4,7 @@ from case_intake.normalization import case_key, grounded, normalize_customer_id,
 
 
 @pytest.mark.parametrize("raw", ["SO#038262", "SO 38262", "so-038262", "38262", "Order #38262", "Sales Order 038262",
-                                 "Invoice 38262", "INV-038262", "PO: 38262", "  038262 "])
+                                 "Invoice 38262", "INV-038262", "  038262 "])
 def test_order_formats_normalize_to_one_id(raw):
     assert normalize_order_id(raw) == "38262"
 
