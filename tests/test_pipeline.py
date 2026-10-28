@@ -23,7 +23,7 @@ def test_new_case_created_with_normalized_key(make_ctx):
     r = process_event(email(body="Cust #062094, SO-0081537: we can't pay as invoiced."), ctx)
     assert r.decision == Decision.CREATE_CASE
     assert r.audit.case_key == "62094|81537" and r.audit.wrote
-    assert ctx.tracker.get("62094|81537").owner == "collections-team-b"
+    assert ctx.tracker.get("62094|81537").owner == "credit-desk"      # 60000-99999 route
 
 
 def test_differently_formatted_ids_update_instead_of_duplicating(make_ctx):

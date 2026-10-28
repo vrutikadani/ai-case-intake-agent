@@ -11,9 +11,12 @@ import re
 from typing import Optional
 
 # Prefixes people actually type in front of identifiers.
-_ORDER_PREFIX = re.compile(r"^\s*(so|sales\s*order|order|ord|po|inv|invoice)\s*(no\.?|number)?\s*[#:.\-]?\s*",
+# Longest alternative first. Regex alternation takes the first branch that
+# matches, so "c" listed before "customer" turned "Customer 10442" into
+# "ustomer 10442" and the identifier was rejected (found by the replay).
+_ORDER_PREFIX = re.compile(r"^\s*(sales\s*order|invoice|order|inv|ord|so|po)\s*(no\.?|number)?\s*[#:.\-]?\s*",
                            re.IGNORECASE)
-_CUSTOMER_PREFIX = re.compile(r"^\s*(c|cust|customer|acct|account)\s*(no\.?|number|id)?\s*[#:.\-]?\s*",
+_CUSTOMER_PREFIX = re.compile(r"^\s*(customer|account|cust|acct|c)\s*(no\.?|number|id)?\s*[#:.\-]?\s*",
                               re.IGNORECASE)
 
 ORDER_MIN_DIGITS, ORDER_MAX_DIGITS = 4, 10

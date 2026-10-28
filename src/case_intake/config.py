@@ -27,7 +27,7 @@ class Settings:
     # Pre-filter: cheap rules that run before any model call.
     routine_subject_patterns: tuple[str, ...] = (
         r"^(automatic reply|auto(-| )?reply|out of (the )?office)\b",
-        r"\b(daily|weekly|monthly) (ar|aging|ageing|statement|cash) report\b",
+        r"\b(daily|weekly|monthly) ((ar|aging|ageing|statement|cash|collections?) )+report\b",
         r"^remittance advice\b",
         r"^payment (confirmation|received)\b",
         r"^(undeliverable|delivery status notification)\b",

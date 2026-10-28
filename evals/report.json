@@ -1,12 +1,12 @@
 {
-  "classification_accuracy": 0.857,
+  "classification_accuracy": 0.85,
   "daily_summary": {
     "decisions": {
-      "CREATE_CASE": 2,
+      "CREATE_CASE": 3,
       "HOLD": 1,
-      "IGNORE": 7,
-      "REVIEW": 14,
-      "UPDATE_CASE": 3
+      "IGNORE": 8,
+      "REVIEW": 11,
+      "UPDATE_CASE": 4
     },
     "dry_run": false,
     "events": 27,
@@ -17,8 +17,13 @@
       }
     ],
     "ignored_before_model": 4,
-    "model_calls": 23,
+    "model_calls": 22,
     "new_cases": [
+      {
+        "case_key": "62094|81537",
+        "event_id": "evt-1001",
+        "owner": "credit-desk"
+      },
       {
         "case_key": "58003|66120",
         "event_id": "evt-1008",
@@ -31,10 +36,6 @@
       }
     ],
     "review_queue": [
-      {
-        "event_id": "evt-1001",
-        "reason": "order 81537 has no open case and no customer ID was found, so a new case cannot be keyed (thread not seen before)"
-      },
       {
         "event_id": "evt-1005",
         "reason": "no order or invoice ID; thread not seen before"
@@ -76,14 +77,6 @@
         "reason": "order 38300 has no open case and no customer ID was found, so a new case cannot be keyed (thread was mapped to order 38262 but this message names 38300)"
       },
       {
-        "event_id": "evt-1001",
-        "reason": "order 81537 has no open case and no customer ID was found, so a new case cannot be keyed (thread not seen before)"
-      },
-      {
-        "event_id": "evt-1025",
-        "reason": "no customer and order IDs; thread not seen before"
-      },
-      {
         "event_id": "evt-1026",
         "reason": "no order or invoice ID; thread not seen before"
       }
@@ -106,10 +99,15 @@
         "case_key": "31877|51094",
         "event_id": "evt-1006",
         "method": "order_only"
+      },
+      {
+        "case_key": "62094|81537",
+        "event_id": "evt-1025",
+        "method": "thread_memory"
       }
     ]
   },
-  "decision_accuracy": 0.815,
+  "decision_accuracy": 0.926,
   "deterministic_match_accuracy": 1.0,
   "discarded_before_model": 4,
   "dry_run_writes": 0,
@@ -117,12 +115,6 @@
   "events": 27,
   "false_positive_writes": [],
   "mismatches": [
-    {
-      "event_id": "evt-1001",
-      "expected": "CREATE_CASE",
-      "got": "REVIEW",
-      "scenario": "new-case"
-    },
     {
       "event_id": "evt-1014",
       "expected": "IGNORE",
@@ -134,26 +126,14 @@
       "expected": "CREATE_CASE",
       "got": "IGNORE",
       "scenario": "model-false-negative"
-    },
-    {
-      "event_id": "evt-1001",
-      "expected": "IGNORE",
-      "got": "REVIEW",
-      "scenario": "retry-duplicate"
-    },
-    {
-      "event_id": "evt-1025",
-      "expected": "UPDATE_CASE",
-      "got": "REVIEW",
-      "scenario": "reply-to-new-case"
     }
   ],
   "missed_cases": [
     "evt-1015"
   ],
-  "model_calls": 23,
+  "model_calls": 22,
   "model_false_negatives": 1,
   "model_false_positives": 2,
-  "review_rate": 0.519,
-  "updates_matched_correctly": "3/4"
+  "review_rate": 0.407,
+  "updates_matched_correctly": "4/4"
 }
