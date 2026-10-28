@@ -1,0 +1,24 @@
+{
+ "files": [
+  "src/case_intake/__init__.py",
+  "src/case_intake/audit_log.py",
+  "src/case_intake/classifier.py",
+  "src/case_intake/config.py",
+  "src/case_intake/cost.py",
+  "src/case_intake/decision_engine.py",
+  "src/case_intake/demo_api.py",
+  "src/case_intake/filters.py",
+  "src/case_intake/matching.py",
+  "src/case_intake/models.py",
+  "src/case_intake/normalization.py",
+  "src/case_intake/replay.py",
+  "src/case_intake/routing.py",
+  "src/case_intake/summary.py",
+  "src/case_intake/thread_memory.py",
+  "src/case_intake/tracker.py",
+  "fixtures/sample_emails.json",
+  "fixtures/sample_cases.json",
+  "fixtures/recorded_model_outputs.json",
+  "evals/expected_results.json"
+ ]
+}

@@ -126,6 +126,8 @@ def process_event(email: Email, ctx: Context) -> PipelineResult:
 
     # 5. decision
     decision, reason = res.decision, res.reason
+    if notes and decision == Decision.REVIEW:
+        reason = f"{reason}; {'; '.join(notes)}"
     if injection and decision in (Decision.CREATE_CASE, Decision.UPDATE_CASE):
         decision, reason = Decision.REVIEW, f"suspected prompt injection ('{injection}'); would have been {res.decision.value}"
     stages.append(StageResult("decision", "pass", f"{decision.value}: {reason}"))

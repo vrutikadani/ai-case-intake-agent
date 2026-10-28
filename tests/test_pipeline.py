@@ -224,3 +224,9 @@ def test_human_reply_to_routine_mail_still_reaches_the_classifier(make_ctx):
                             body="Customer 22610: your remittance shows invoice 70288 short-paid. We dispute the deduction."), ctx)
     assert r.audit.model_called
     assert r.decision == Decision.CREATE_CASE
+
+
+def test_malformed_identifier_is_named_in_the_review_reason(make_ctx):
+    ctx = make_ctx(cases=[], outputs={"evt-1": model(cust="22610", order="7O315")})
+    r = process_event(email(body="Invoice 7O315 (customer 22610) has the wrong freight amount."), ctx)
+    assert r.decision == Decision.REVIEW and "malformed" in r.reason

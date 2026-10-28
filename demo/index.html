@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI Case Intake Agent</title>
+<meta name="description" content="Reference implementation: operational email to structured, auditable case state. Synthetic data, no API key.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%233d4fa8'/%3E%3Cpath d='M3 5h10v7H3z M3 5l5 4 5-4' stroke='white' stroke-width='1.4' fill='none'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="top">
+  <div class="brand">
+    <span class="logo" aria-hidden="true"></span>
+    <div>
+      <h1 class="title">AI Case Intake Agent</h1>
+      <div class="sub">Email → classification → deterministic case matching → auditable case state</div>
+    </div>
+  </div>
+  <nav class="tabs" aria-label="Views">
+    <button class="tab active" data-view="walk" aria-pressed="true">Walk through an email</button>
+    <button class="tab" data-view="batch" aria-pressed="false">Daily summary</button>
+    <a class="tab" href="https://github.com/vrutikadani/ai-case-intake-agent">Code</a>
+  </nav>
+  <span id="mode" class="pill" role="status">loading engine…</span>
+</header>
+<p class="notice">Synthetic emails, companies and identifiers. No API key: classifier results are recorded outputs (or a rule-based stand-in when you edit an email). The pipeline is the same Python code the tests run, loaded in your browser.</p>
+
+<main id="view-walk" class="layout">
+  <section class="col email-col" aria-labelledby="email-h">
+    <h2 id="email-h" class="col-h">Scenario</h2>
+    <label class="sr-only" for="scenario">Scenario</label>
+    <select id="scenario"></select>
+    <p id="blurb" class="muted small"></p>
+    <div class="email">
+      <label>From <input id="f-from" type="text"></label>
+      <label>Subject <input id="f-subject" type="text"></label>
+      <label>Thread ID <input id="f-thread" type="text"></label>
+      <label>Body <textarea id="f-body" rows="8"></textarea></label>
+    </div>
+    <div class="row">
+      <label class="switch"><input id="dry" type="checkbox"> <span>Dry run (<code>WRITE_TO_TRACKER=false</code>)</span></label>
+    </div>
+    <p id="edited" class="small warn-text" hidden>Edited: the rule-based stand-in classifier will be used instead of the recorded model output.</p>
+    <button id="run" class="btn primary" disabled>Run pipeline</button>
+  </section>
+
+  <section class="col pipe-col" aria-labelledby="pipe-h">
+    <h2 id="pipe-h" class="col-h">Decision pipeline</h2>
+    <ol id="stages" class="stages"><li class="empty">Pick a scenario and run it.</li></ol>
+  </section>
+
+  <section class="col out-col" aria-labelledby="out-h" aria-live="polite">
+    <h2 id="out-h" class="col-h">Outcome</h2>
+    <div id="outcome" class="empty">No run yet.</div>
+  </section>
+</main>
+
+<main id="view-batch" class="batch" hidden>
+  <div class="batch-head">
+    <div>
+      <h2>Daily summary: sample batch</h2>
+      <p class="muted small">All 27 synthetic emails processed in delivery order, one event per run. Some recorded model outputs are wrong on purpose.</p>
+    </div>
+    <label class="switch"><input id="batch-dry" type="checkbox"> <span>Dry run</span></label>
+  </div>
+  <div id="batch-out">Loading…</div>
+</main>
+
+<script src="app.js"></script>
+</body>
+</html>

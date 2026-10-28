@@ -78,7 +78,7 @@
       },
       {
         "event_id": "evt-1026",
-        "reason": "no order or invoice ID; thread not seen before"
+        "reason": "no order or invoice ID; thread not seen before; order ID '7O315' is malformed"
       }
     ],
     "unassigned": [
