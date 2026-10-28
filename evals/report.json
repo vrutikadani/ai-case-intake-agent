@@ -62,7 +62,7 @@
       },
       {
         "event_id": "evt-1019",
-        "reason": "suspected prompt injection ('IGNORE ALL PREVIOUS INSTRUCTIONS'); would have been CREATE_CASE"
+        "reason": "suspected prompt injection ('IGNORE ALL PREVIOUS INSTRUCTIONS'); classifier output not acted on"
       },
       {
         "event_id": "evt-1021",

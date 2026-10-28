@@ -14,7 +14,7 @@ when:
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional
 
 
@@ -33,6 +33,9 @@ class ThreadMemory:
         return self._map.get(thread_id)
 
     def remember(self, thread_id: str, case_key: str, order_id: str, at: str) -> None:
+        prev = self._map.get(thread_id)
+        if prev is not None and prev.case_key == case_key and _parse(prev.last_seen) > _parse(at):
+            at = prev.last_seen              # a late-arriving older message must not age the mapping
         self._map[thread_id] = ThreadEntry(case_key, order_id, at)
 
     def lookup(self, thread_id: str, now: str, ttl_days: int,
@@ -42,6 +45,8 @@ class ThreadMemory:
         if entry is None:
             return None, "thread not seen before"
         age = (_parse(now) - _parse(entry.last_seen)).days
+        if age < 0:
+            return None, "thread mapping is dated after this message; not trusted"
         if age > ttl_days:
             return None, f"thread mapping is {age} days old (limit {ttl_days})"
         if mentioned_order and mentioned_order != entry.order_id:
@@ -60,4 +65,8 @@ class ThreadMemory:
 
 
 def _parse(ts: str) -> datetime:
-    return datetime.fromisoformat(ts.replace("Z", "+00:00"))
+    """ISO timestamp to an aware UTC datetime. A timestamp without an offset is read as UTC."""
+    dt = datetime.fromisoformat(ts.replace("Z", "+00:00"))
+    if dt.tzinfo is None:
+        dt = dt.replace(tzinfo=timezone.utc)
+    return dt.astimezone(timezone.utc)

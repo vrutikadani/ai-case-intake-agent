@@ -8,7 +8,8 @@ from conftest import NOW, email, existing_case, model
 
 def test_routine_report_is_ignored_before_the_model(make_ctx):
     ctx = make_ctx(outputs={})          # no recorded output: calling the model would HOLD
-    r = process_event(email(subject="Daily AR aging report - 2026-10-06", sender="ar@erp.example"), ctx)
+    r = process_event(email(subject="Daily AR aging report - 2026-10-06", sender="ar@erp.example",
+                            body="Attached: AR aging by customer as of 06:00."), ctx)
     assert r.decision == Decision.IGNORE
     assert r.audit.model_called is False and r.audit.prefilter_rule
 
@@ -115,7 +116,7 @@ def test_redelivered_event_is_applied_once(make_ctx):
     e = email(body="account 58003 order 66120 on hold")
     assert process_event(e, ctx).decision == Decision.CREATE_CASE
     second = process_event(e, ctx)
-    assert second.decision == Decision.IGNORE and "already processed" in second.reason
+    assert second.decision == Decision.IGNORE and "already decided" in second.reason
     assert len(ctx.tracker.get("58003|66120").history) == 1
 
 
@@ -198,7 +199,7 @@ def test_unknown_customer_routes_to_shared_queue(make_ctx):
 def test_daily_summary_aggregates(make_ctx):
     ctx = make_ctx(outputs={})
     ctx.classifier.__init__({"evt-2": model(cust="10442", order="38262"), "evt-3": model(order="99999")})
-    process_event(email("evt-1", subject="Remittance advice 2026-10-05"), ctx)
+    process_event(email("evt-1", subject="Remittance advice 2026-10-05", body="Payment sent for invoice 38262."), ctx)
     process_event(email("evt-2", body="customer 10442 order 38262 still open"), ctx)
     process_event(email("evt-3", body="order 99999 problem"), ctx)
     s = daily_summary(ctx.audit.records())
@@ -210,7 +211,7 @@ def test_daily_summary_aggregates(make_ctx):
 
 def test_every_event_gets_exactly_one_audit_record(make_ctx):
     ctx = make_ctx(outputs={"evt-2": model(cust="10442", order="38262")})
-    process_event(email("evt-1", subject="Remittance advice"), ctx)
+    process_event(email("evt-1", subject="Remittance advice", body="Payment sent."), ctx)
     process_event(email("evt-2", body="customer 10442 order 38262"), ctx)
     recs = ctx.audit.records()
     assert [r.event_id for r in recs] == ["evt-1", "evt-2"]

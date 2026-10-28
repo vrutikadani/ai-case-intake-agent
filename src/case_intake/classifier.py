@@ -68,6 +68,7 @@ class Classifier(Protocol):
 
 _REQUIRED = {"is_case": bool, "reason": str, "summary": str}
 _OPTIONAL_STR = ("case_type", "customer_name", "customer_id", "order_or_invoice_id")
+_ALLOWED = set(_REQUIRED) | set(_OPTIONAL_STR) | {"confidence"}
 
 
 def validate_output(raw: Any) -> ClassifierResult:
@@ -83,6 +84,9 @@ def validate_output(raw: Any) -> ClassifierResult:
             raise SchemaError(f"not JSON: {exc.msg}") from None
     if not isinstance(raw, dict):
         raise SchemaError("output is not an object")
+    extra = set(raw) - _ALLOWED
+    if extra:
+        raise SchemaError(f"unexpected fields: {', '.join(sorted(extra))}")
     for key, typ in _REQUIRED.items():
         if not isinstance(raw.get(key), typ):
             raise SchemaError(f"missing or wrong type: {key}")
@@ -109,6 +113,9 @@ def validate_output(raw: Any) -> ClassifierResult:
     )
 
 
+_FENCE = re.compile(r"(e\s*m\s*a\s*i\s*l\s*>\s*>\s*>|<\s*<\s*<\s*e\s*m\s*a\s*i\s*l)", re.I)
+
+
 class LLMClassifier:
     name = "llm"
 
@@ -116,10 +123,11 @@ class LLMClassifier:
         self._complete = complete
 
     def build_prompt(self, email: Email) -> str:
-        # Strip the end marker from the body so the email cannot close the data block early.
-        body = email.body.replace("EMAIL>>>", "EMAIL> > >")
-        return PROMPT_TEMPLATE.format(case_types=", ".join(CASE_TYPES), sender=email.sender,
-                                      subject=email.subject, body=body)
+        # Defang anything that looks like a fence marker in every email field,
+        # so the email cannot close (or reopen) the data block.
+        clean = lambda t: _FENCE.sub("[marker removed]", t)  # noqa: E731
+        return PROMPT_TEMPLATE.format(case_types=", ".join(CASE_TYPES), sender=clean(email.sender),
+                                      subject=clean(email.subject), body=clean(email.body))
 
     def classify(self, email: Email) -> ClassifierResult:
         try:
@@ -186,9 +194,13 @@ class RuleClassifier:
 # ---------------------------------------------------------------------------
 
 _INJECTION = re.compile(
-    r"(ignore (all |any )?(previous|prior|above) (instructions|prompts?)|disregard (the|your) (instructions|rules)|"
-    r"you are (now )?(an? )?(ai|assistant|language model)|^\s*(system|assistant)\s*:|"
-    r"return (the following )?json|set is_case|mark (this|it) as (a )?case|override)",
+    r"((ignore|disregard|forget) (all |any )?(of )?(the |your )?(previous|prior|above|earlier|preceding|original)?\s*"
+    r"(instructions|prompts?|directions|rules)|"
+    r"you are (now )?(an? )?(ai|assistant|language model|classifier)|"
+    r"^\s*(system|assistant|ai|model|classifier|chatgpt|claude|gpt)\s*[,:]|"
+    r"\b(assistant|classifier|model|ai)\s*,\s*(please\s+)?(classify|mark|set|return|output)|"
+    r"classify (this|it) as|return (the following )?json|\bis_case\b|\bconfidence\s*[:=]|"
+    r"mark (this|it) as (a )?case)",
     re.I | re.M)
 
 

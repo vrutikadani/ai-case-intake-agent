@@ -17,7 +17,9 @@
 |---|---|---|
 | Binary `is_case`, biased toward "no" | Ask the model to choose a case category | A forced category gives every email a category. The yes/no question has a safe default |
 | Model returns raw identifiers; code normalizes | Ask the model for normalized IDs | The model's formatting drifts. Normalization has to be identical on every run |
-| Grounding check on identifiers | Trust the extraction | Models occasionally produce plausible numbers that aren't in the text, and an email can try to steer them |
+| Grounding by label (an order ID next to `SO`/`Invoice`, a customer ID next to `Customer`/`Acct`/`C-`) | Any occurrence of the digits | The first version accepted any occurrence; a review showed a year, an amount or the order number could become the customer ID |
+| Create only for customers in the directory | Create for any well-formed ID | Master data is the cheapest check that an ID is real |
+| Every decision except HOLD is final per event | Skip only events that wrote | A retried event can get a different answer from a non-deterministic model; REVIEW has to stick |
 | `customer_id\|order_id` key | Order number alone | Order and invoice numbers can collide across entities (scenario 7). The customer ID disambiguates |
 | Order-only match allowed when unique | Always require a full key for updates | Many follow-ups name only the invoice. Unique match is safe; ambiguity goes to review |
 | Order-only can never CREATE | Create with an unknown customer | A case without a customer can't be routed or deduplicated later |

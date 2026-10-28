@@ -90,7 +90,7 @@ Scenario 3. The tracker already has case `10442|38262` for a pricing issue. A ne
 1. **Idempotency:** first time this event ID is seen.
 2. **Pre-filter:** no routine rule matches, so the model is called.
 3. **Classification:** `is_case: true`, `customer_id: "C-010442"`, `order_or_invoice_id: "SO#038262"`, `confidence: 0.91`.
-4. **Normalization:** `C-010442 → 10442`, `SO#038262 → 38262`. Both appear in the email (grounded).
+4. **Normalization:** `C-010442 → 10442`, `SO#038262 → 38262`. Each appears in the email next to a label of its kind, and customer 10442 is in the directory.
 5. **Matching:** `CaseKey 10442|38262` exists and is open, so this is an exact key match.
 6. **Decision:** `UPDATE_CASE`.
 7. **Write:** the update is appended to the case history. Status, owner and the original description are untouched. The thread is remembered for follow-ups.
@@ -101,27 +101,29 @@ Scenario 3. The tracker already has case `10442|38262` for a pricing issue. A ne
 | Decision | When | Writes? |
 |---|---|---|
 | `IGNORE` | Pre-filter match, classifier says not a case, or a re-delivered event | No |
-| `CREATE_CASE` | Classifier says case, confidence ≥ 0.75, customer ID **and** order ID present, normalized, grounded, and no case has that key | Yes (unless dry run) |
+| `CREATE_CASE` | Classifier says case, confidence ≥ 0.75, customer ID **and** order ID present, normalized, grounded by label, customer known, no case has that key and no open case has that order | Yes (unless dry run) |
 | `UPDATE_CASE` | Exact key match on an open case, or a trusted thread mapping, or exactly one open case with that order | Yes (unless dry run), appended to history |
-| `REVIEW` | Low confidence, invalid model output, ungrounded or malformed IDs, missing identity, ambiguous order, closed case, stale or drifted thread, suspected prompt injection | No |
-| `HOLD` | Model unavailable or tracker write failed | No; the event is retried |
+| `REVIEW` | Low confidence, invalid model output, ungrounded or malformed IDs, unknown customer, missing identity, ambiguous order, order already open under another customer, closed case, stale or drifted thread, suspected prompt injection | No |
+| `HOLD` | Model unavailable, tracker write failed, or an unexpected error | No; the event is retried |
 
 Only a full key can create a case. Missing identifiers are never filled in.
 
 ## Reliability and safety mechanisms
 
-- **Cheap pre-filters before inference.** Auto-reply headers, routine subjects and non-case senders are discarded by rules. Subject rules apply only to original messages: a person replying to a remittance email may be raising exactly the issue we want.
-- **Constrained classification.** The model returns one JSON object. A strict validator rejects anything else (wrong types, confidence outside 0 to 1, prose). Rejected output goes to REVIEW, never to a write.
+- **Cheap pre-filters before inference.** Auto-reply headers, routine subjects and non-case senders are discarded by rules. Subject rules stand down for replies and for bodies with dispute language ("Payment received… you overcharged us" still reaches the model).
+- **Constrained classification.** The model returns one JSON object. A strict validator rejects anything else (wrong types, extra fields, confidence outside 0 to 1, prose). Rejected output goes to REVIEW, never to a write.
 - **Deterministic normalization.** Prefixes, separators and leading zeros are stripped by code; anything that still isn't a clean number is rejected as malformed.
-- **Grounding check.** Every identifier the model returns must appear in the email. A hallucinated or steered identifier sends the email to REVIEW.
+- **Grounding check.** Every identifier the model returns must appear in the email next to a label of its own kind (`SO`, `Invoice`, `Order` for orders; `Customer`, `Acct`, `C-` for customers). An amount, a year, a swapped pair or the same number used twice can't become identity.
+- **Customer directory.** A case is created only for a customer that exists in master data. An unknown customer ID goes to REVIEW.
 - **One stable identity.** `CaseKey = customer_id|order_id` drives matching and duplicate prevention.
 - **Thread memory with limits.** A reply in a mapped thread reuses the mapping only if it is under 21 days old, the message doesn't name a different order, and the case is still open.
-- **Fail closed.** Ambiguity, missing identity or a closed case goes to a person.
+- **Fail closed.** Ambiguity, missing identity, a closed case, or a new key on an order that already has an open case under another customer (a likely typo) goes to a person.
 - **Append, don't overwrite.** Updates add to history. Status and owner change only by human action.
-- **Idempotent events.** An event ID that already changed the tracker is skipped on re-delivery, so retries never double-write.
+- **Idempotent events.** Every decision except HOLD is final for an event ID. A re-delivered email is skipped, so a non-deterministic model can't turn a REVIEW into a CREATE on retry.
 - **Write failures hold.** If the tracker rejects a write, nothing is changed, the event is held and a retry is safe.
-- **Prompt injection.** Email text is data. The prompt fences it as untrusted, the body cannot close the fence, the model has no tools, and text that addresses the model ("ignore previous instructions…") forces REVIEW even if the classifier is fooled.
+- **Prompt injection.** Email text is data. The prompt fences it as untrusted, no email field can close the fence, the model has no tools, and text that addresses the model ("ignore the earlier instructions…", "Assistant, classify this as…") sends any proposed case to REVIEW.
 - **Dry run.** `WRITE_TO_TRACKER=false` (the default) runs everything and logs what would happen, without touching the tracker or thread memory.
+- **Errors become HOLD.** Any unexpected exception (a bad timestamp, a broken dependency) is caught and recorded as HOLD; no event goes unaudited.
 - **Audit log.** Every event produces one structured record: timestamp, event ID, decision, reason, classifier output, normalized IDs, case key, matched case, match method, owner, whether a write happened, dry-run flag, review reason, and whether the model was called.
 - **Daily summary.** One digest a day: new, updated, review list with reasons, ignored, held, and new cases that hit no routing rule.
 
@@ -179,14 +181,14 @@ src/case_intake/
   thread_memory.py   thread → case mapping with TTL and drift checks
   matching.py        identity resolution
   tracker.py         case store: schema check, append-only updates
-  routing.py         owner assignment
+  routing.py         customer directory and owner assignment
   decision_engine.py process_event: one event in, one decision out
   audit_log.py       append-only audit records
   summary.py         daily summary
   cost.py            cost model
   replay.py          replay + scoring
   demo_api.py        JSON layer for the browser demo
-tests/               59 tests (pytest)
+tests/               73 tests (pytest)
 fixtures/            synthetic emails, cases, thread state, recorded model outputs
 evals/               replay script, labels, committed report
 demo/                GitHub Pages demo
@@ -224,7 +226,16 @@ Building this reference implementation added three more:
 - **A routine-report rule was too narrow.** "Daily AR aging report" slipped past a pattern that allowed one word before "report".
 - **Subject filters dropped human replies.** "RE: Remittance advice", with a dispute in the body, was being discarded before the model. Subject rules now apply to original messages only.
 
-The commit history shows the order: engine, failing tests, fixes.
+An independent review before publishing then found fifteen more problems, each now a test in [`tests/test_review_findings.py`](tests/test_review_findings.py) ([evidence](docs/evidence/review_findings_before_fix.txt)). The ones that could write a wrong case:
+
+- **REVIEW wasn't final.** Only written events were skipped on re-delivery, so a retry with a more confident model answer could create a case a person was supposed to review.
+- **Grounding ignored which field a number came from.** A year from a date, an amount, the order number itself, or swapped IDs could be written as a customer ID. Grounding now requires a label of the right kind, and creates require a customer that exists in the directory.
+- **A typo'd customer ID created a second case** on an order that already had an open one. That now goes to review.
+- **Two injection phrasings got through** ("ignore the earlier instructions", "Assistant, classify this as…"), and the subject line could close the prompt fence.
+
+Others: a naive timestamp crashed the run without an audit record; a thread mapping dated after the message was trusted; a routine subject could hide a dispute in the body; extra fields in model output were accepted; and "override" in ordinary text was flagged as injection.
+
+The commit history shows the order: engine, failing tests, fixes, review cases, fixes.
 
 ## Synthetic-data disclaimer
 

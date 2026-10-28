@@ -75,8 +75,17 @@ def score(results, labels, ctx, initial_keys: set[str]) -> dict:
     # no case key was ever created twice (the tracker would refuse) or created when it already existed
     should_update = [(r, l) for r, l in zip(results, labels) if l["decision"] == "UPDATE_CASE"]
     upd_ok = sum(1 for r, l in should_update if r.decision.value == "UPDATE_CASE" and r.audit.case_key == l["case_key"])
+    # A duplicate is a create whose key already existed, or whose order number already
+    # had an open case under another customer (a likely typo'd customer ID).
     created_keys = [r.audit.case_key for r in results if r.audit.wrote and r.decision.value == "CREATE_CASE"]
-    duplicates = len(created_keys) - len(set(created_keys)) + sum(1 for k in created_keys if k in initial_keys)
+    seen_orders = {k.split("|")[1] for k in initial_keys}
+    duplicates = 0
+    seen_keys = set(initial_keys)
+    for k in created_keys:
+        if k in seen_keys or k.split("|")[1] in seen_orders:
+            duplicates += 1
+        seen_keys.add(k)
+        seen_orders.add(k.split("|")[1])
 
     review = sum(1 for r in results if r.decision.value == "REVIEW")
     summary = daily_summary(ctx.audit.records())

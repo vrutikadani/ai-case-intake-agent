@@ -23,8 +23,8 @@ from .config import Settings
 from .filters import prefilter
 from .matching import resolve
 from .models import AuditRecord, Case, CaseUpdate, ClassifierResult, Decision, Email, PipelineResult, StageResult
-from .normalization import case_key, grounded, normalize_customer_id, normalize_order_id
-from .routing import owner_for
+from .normalization import case_key, grounded_as, normalize_customer_id, normalize_order_id
+from .routing import DEFAULT_DIRECTORY, known_customer, owner_for
 from .thread_memory import ThreadMemory
 from .tracker import CaseTracker, TrackerWriteError
 
@@ -37,14 +37,31 @@ class Context:
     threads: ThreadMemory = field(default_factory=ThreadMemory)
     audit: AuditLog = field(default_factory=AuditLog)
     clock: Optional[str] = None           # fixed "now" for replays; real runs use the wall clock
+    directory: dict = field(default_factory=lambda: dict(DEFAULT_DIRECTORY))   # customer master data
 
     def now(self) -> str:
         return self.clock or datetime.now(timezone.utc).isoformat(timespec="seconds")
 
 
 def process_event(email: Email, ctx: Context) -> PipelineResult:
-    s = ctx.settings
+    """Process one email. Any unexpected error becomes an audited HOLD, never a missing record."""
     stages: list[StageResult] = []
+    try:
+        return _process(email, ctx, stages)
+    except Exception as exc:  # noqa: BLE001 - the audit record matters more than the traceback type
+        stages.append(StageResult("error", "fail", f"{type(exc).__name__}: {exc}"))
+        reason = f"unexpected error ({type(exc).__name__}); nothing written, event left for retry"
+        audit = AuditRecord(timestamp=ctx.now(), event_id=email.event_id, thread_id=email.thread_id,
+                            decision=Decision.HOLD.value, reason=reason, prefilter_rule=None, classifier=None,
+                            normalized_customer_id=None, normalized_order_id=None, case_key=None,
+                            matched_case=None, match_method=None, owner=None, wrote=False,
+                            dry_run=not ctx.settings.write_to_tracker, review_reason=None, model_called=False)
+        ctx.audit.append(audit)
+        return PipelineResult(Decision.HOLD, reason, stages, audit)
+
+
+def _process(email: Email, ctx: Context, stages: list[StageResult]) -> PipelineResult:
+    s = ctx.settings
     rec = dict(timestamp=ctx.now(), event_id=email.event_id, thread_id=email.thread_id,
                prefilter_rule=None, classifier=None, normalized_customer_id=None,
                normalized_order_id=None, case_key=None, matched_case=None, match_method=None,
@@ -58,11 +75,13 @@ def process_event(email: Email, ctx: Context) -> PipelineResult:
         ctx.audit.append(audit)
         return PipelineResult(decision, reason, stages, audit, case_after)
 
-    # 0. idempotency: a retried or re-delivered event must not write twice
-    prior = ctx.audit.written(email.event_id)
+    # 0. idempotency: every decision except HOLD is final for an event. A
+    # re-delivered email must not get a second, different answer from a
+    # non-deterministic model (REVIEW once, CREATE on retry).
+    prior = ctx.audit.decided(email.event_id)
     if prior is not None:
-        stages.append(StageResult("idempotency", "stop", f"event already applied ({prior.decision})"))
-        return finish(Decision.IGNORE, "duplicate delivery: event already processed")
+        stages.append(StageResult("idempotency", "stop", f"event already decided ({prior.decision})"))
+        return finish(Decision.IGNORE, f"duplicate delivery: event already decided as {prior.decision}")
     stages.append(StageResult("idempotency", "pass", "first time this event is applied"))
 
     # 1. pre-filter (no model call)
@@ -92,6 +111,8 @@ def process_event(email: Email, ctx: Context) -> PipelineResult:
                               vars(result).copy()))
     if not result.is_case:
         return finish(Decision.IGNORE, f"classifier: not a case ({result.reason})")
+    if injection:
+        return finish(Decision.REVIEW, f"suspected prompt injection ('{injection}'); classifier output not acted on")
     if result.confidence < s.min_confidence:
         return finish(Decision.REVIEW, f"classifier confidence {result.confidence:.2f} below {s.min_confidence}")
 
@@ -103,13 +124,22 @@ def process_event(email: Email, ctx: Context) -> PipelineResult:
         notes.append(f"customer ID '{result.customer_id}' is malformed")
     if result.order_or_invoice_id and order is None:
         notes.append(f"order ID '{result.order_or_invoice_id}' is malformed")
-    ungrounded = [label for label, v in (("customer", cust), ("order", order)) if v and not grounded(v, email.text)]
+    # Grounding: each ID must appear in the email next to a label of its own kind,
+    # so an amount, a year, the other ID or a swapped pair can't become identity.
+    ungrounded = [label for label, v in (("customer", cust), ("order", order))
+                  if v and not grounded_as(label, v, email.text)]
     rec["normalized_customer_id"], rec["normalized_order_id"] = cust, order
     if ungrounded:
         stages.append(StageResult("normalization", "fail",
-                                  f"model returned a {' and '.join(ungrounded)} ID that does not appear in the email",
-                                  {"customer_id": cust, "order_id": order}))
+                                  f"model returned a {' and '.join(ungrounded)} ID that does not appear in the email "
+                                  f"with a {' / '.join(ungrounded)} label", {"customer_id": cust, "order_id": order}))
         return finish(Decision.REVIEW, f"ungrounded {' and '.join(ungrounded)} ID from classifier")
+    if cust and order and cust == order:
+        stages.append(StageResult("normalization", "fail", "customer and order IDs are the same number"))
+        return finish(Decision.REVIEW, "customer and order IDs are the same number")
+    if cust and not known_customer(cust, ctx.directory):
+        stages.append(StageResult("normalization", "fail", f"customer {cust} is not in the customer directory"))
+        return finish(Decision.REVIEW, f"customer {cust} is not in the customer directory")
     stages.append(StageResult("normalization", "pass",
                               f"customer {result.customer_id!r} -> {cust!r}; order {result.order_or_invoice_id!r} -> {order!r}"
                               + (f" ({'; '.join(notes)})" if notes else ""),
@@ -128,8 +158,6 @@ def process_event(email: Email, ctx: Context) -> PipelineResult:
     decision, reason = res.decision, res.reason
     if notes and decision == Decision.REVIEW:
         reason = f"{reason}; {'; '.join(notes)}"
-    if injection and decision in (Decision.CREATE_CASE, Decision.UPDATE_CASE):
-        decision, reason = Decision.REVIEW, f"suspected prompt injection ('{injection}'); would have been {res.decision.value}"
     stages.append(StageResult("decision", "pass", f"{decision.value}: {reason}"))
     if decision not in (Decision.CREATE_CASE, Decision.UPDATE_CASE):
         return finish(decision, reason)
@@ -138,7 +166,7 @@ def process_event(email: Email, ctx: Context) -> PipelineResult:
     now = email.received_at
     update = CaseUpdate(at=now, event_id=email.event_id, summary=result.summary)
     if decision == Decision.CREATE_CASE:
-        owner = owner_for(cust)
+        owner = owner_for(cust, ctx.directory)
         proposed = Case(case_key=res.case_key, customer_id=cust, order_id=order,
                         customer_name=result.customer_name, case_type=result.case_type, owner=owner,
                         status="open", created_at=now, updated_at=now, history=[update])

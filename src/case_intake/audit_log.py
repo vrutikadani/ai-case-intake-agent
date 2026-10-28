@@ -22,6 +22,14 @@ class AuditLog:
     def records(self) -> list[AuditRecord]:
         return list(self._records)
 
+    def decided(self, event_id: str) -> Optional[AuditRecord]:
+        """The final decision already made for this event in a live run, if any.
+        HOLD is not final (it is meant to be retried) and dry-run records never block a live run."""
+        for r in self._records:
+            if r.event_id == event_id and r.decision != "HOLD" and not r.dry_run:
+                return r
+        return None
+
     def written(self, event_id: str) -> Optional[AuditRecord]:
         """The record that already changed the tracker for this event, if any."""
         for r in self._records:

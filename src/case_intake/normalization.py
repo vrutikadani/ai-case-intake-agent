@@ -10,24 +10,29 @@ from __future__ import annotations
 import re
 from typing import Optional
 
-# Prefixes people actually type in front of identifiers.
-# Longest alternative first. Regex alternation takes the first branch that
-# matches, so "c" listed before "customer" turned "Customer 10442" into
-# "ustomer 10442" and the identifier was rejected (found by the replay).
-_ORDER_PREFIX = re.compile(r"^\s*(sales\s*order|invoice|order|inv|ord|so|po)\s*(no\.?|number)?\s*[#:.\-]?\s*",
-                           re.IGNORECASE)
-_CUSTOMER_PREFIX = re.compile(r"^\s*(customer|account|cust|acct|c)\s*(no\.?|number|id)?\s*[#:.\-]?\s*",
-                              re.IGNORECASE)
+# Labels people actually type in front of identifiers, longest alternative first.
+# Regex alternation takes the first branch that matches: with "c" before
+# "customer", "Customer 10442" became "ustomer 10442" and was rejected (found
+# by the replay). "PO" is deliberately absent: a customer's purchase-order
+# number is a different ID space from our order numbers.
+ORDER_LABEL = r"(?:sales\s*order|invoice|order|inv|ord|so)"
+CUSTOMER_LABEL = r"(?:customer|account|cust|acct|c)"
+_SUFFIX = r"\s*(?:no\.?|number|id)?\s*[#:.\-\s]*"
+
+_ORDER_PREFIX = re.compile(rf"^\s*{ORDER_LABEL}{_SUFFIX}", re.IGNORECASE)
+_CUSTOMER_PREFIX = re.compile(rf"^\s*{CUSTOMER_LABEL}{_SUFFIX}", re.IGNORECASE)
 
 ORDER_MIN_DIGITS, ORDER_MAX_DIGITS = 4, 10
 CUSTOMER_MIN_DIGITS, CUSTOMER_MAX_DIGITS = 4, 8
 
 
 def _digits_core(raw: str, prefix: re.Pattern, lo: int, hi: int) -> Optional[str]:
-    s = prefix.sub("", raw.strip())
-    s = re.sub(r"[\s\-]", "", s)
+    s = raw.strip()
+    for _ in range(2):                       # "Customer ID: C-10442" has two labels
+        s = prefix.sub("", s, count=1)
+    s = s.strip()
     if not s.isdigit():
-        return None            # letters left over = not an identifier we trust
+        return None            # letters, extra digit groups ("38262-1") or symbols: not trusted
     s = s.lstrip("0")
     if not (lo <= len(s) <= hi):
         return None
@@ -35,14 +40,14 @@ def _digits_core(raw: str, prefix: re.Pattern, lo: int, hi: int) -> Optional[str
 
 
 def normalize_order_id(raw: Optional[str]) -> Optional[str]:
-    """'SO#038262', 'so 38262', '038262' -> '38262'. Malformed -> None."""
+    """'SO#038262', 'so 38262', 'Order #: 038262' -> '38262'. Malformed -> None."""
     if raw is None:
         return None
     return _digits_core(str(raw), _ORDER_PREFIX, ORDER_MIN_DIGITS, ORDER_MAX_DIGITS)
 
 
 def normalize_customer_id(raw: Optional[str]) -> Optional[str]:
-    """'C-010442', 'Cust #10442', '10442' -> '10442'. Malformed -> None."""
+    """'C-010442', 'Cust #10442', 'Customer ID: C-10442' -> '10442'. Malformed -> None."""
     if raw is None:
         return None
     return _digits_core(str(raw), _CUSTOMER_PREFIX, CUSTOMER_MIN_DIGITS, CUSTOMER_MAX_DIGITS)
@@ -54,13 +59,24 @@ def case_key(customer_id: str, order_id: str) -> str:
 
 
 def grounded(normalized_id: Optional[str], email_text: str) -> bool:
-    """True if the identifier actually appears in the email.
-
-    The classifier may hallucinate an identifier, or be steered into one by text
-    inside the email. An identifier counts only if the same digits occur in the
-    message as a standalone number (leading zeros and prefixes allowed).
-    """
+    """True if the digits appear in the email as a standalone number (any label)."""
     if not normalized_id:
         return False
     pattern = rf"(?<!\d)0*{re.escape(normalized_id)}(?!\d)"
     return re.search(pattern, email_text) is not None
+
+
+def grounded_as(kind: str, normalized_id: Optional[str], email_text: str) -> bool:
+    """True if the identifier appears next to a label of the right kind.
+
+    A bare number is not enough: an amount ("$12500"), a year ("2026-10-01")
+    or the order number itself must not become a customer ID, and the two IDs
+    must not be swapped. "SO#038262" grounds an order; "C-010442" or
+    "customer 10442" grounds a customer.
+    """
+    if not normalized_id:
+        return False
+    label = ORDER_LABEL if kind == "order" else CUSTOMER_LABEL
+    inner = r"(?:c\s*[-#]?\s*)?" if kind == "customer" else ""
+    pattern = rf"\b{label}{_SUFFIX}{inner}0*{re.escape(normalized_id)}(?!\d)"
+    return re.search(pattern, email_text, re.IGNORECASE) is not None

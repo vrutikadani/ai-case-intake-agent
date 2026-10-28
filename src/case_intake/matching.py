@@ -40,6 +40,11 @@ def resolve(customer_id: Optional[str], order_id: Optional[str], email: Email,
         key = case_key(customer_id, order_id)
         existing = tracker.get(key)
         if existing is None:
+            same_order = [c.case_key for c in tracker.by_order(order_id) if c.status in OPEN_STATUSES]
+            if same_order:
+                return Resolution(Decision.REVIEW, "new_case_key", key,
+                                  f"order {order_id} already has an open case under another customer "
+                                  f"({', '.join(same_order)}); possible typo or second entity", same_order)
             return Resolution(Decision.CREATE_CASE, "new_case_key", key, f"no case with key {key}")
         if existing.status not in OPEN_STATUSES:
             return Resolution(Decision.REVIEW, "case_key", key,
@@ -60,8 +65,6 @@ def resolve(customer_id: Optional[str], order_id: Optional[str], email: Email,
     # 3. order only
     if order_id:
         matches = [c for c in tracker.by_order(order_id) if c.status in OPEN_STATUSES]
-        if customer_id:
-            matches = [c for c in matches if c.customer_id == customer_id]
         if len(matches) == 1:
             return Resolution(Decision.UPDATE_CASE, "order_only", matches[0].case_key,
                               f"exactly one open case has order {order_id}")

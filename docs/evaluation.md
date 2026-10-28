@@ -33,7 +33,7 @@
 | Model false positives / negatives | Recorded `is_case` true when label is false, and the reverse | 2 / 1 |
 | False-positive writes | Tracker writes for emails labeled "not a case" | 0 |
 | Missed cases | Labeled cases that ended as IGNORE | 1 (evt-1015) |
-| Duplicate cases created | Creates for a key that existed or was created earlier in the run | 0 |
+| Duplicate cases created | Creates for a key that already existed, or for an order that already had a case under another customer | 0 |
 | Update matching | Emails labeled UPDATE that updated the labeled case | 4 / 4 |
 | Deterministic match accuracy | Writes whose `CaseKey` equals the labeled key | 7 / 7 |
 | Review rate | REVIEW decisions / events | 11 / 27 (0.41) |
@@ -49,4 +49,6 @@
 
 ## What the replay caught during development
 
-The first replay ([evidence](evidence/replay_before_normalization_fix.txt)) sent the clean new case in scenario 1 to REVIEW: `Cust #062094` was rejected as malformed because the prefix regex matched `c` before `cust`. The tests then found the same bug for `Invoice` and `Customer`, plus a routine-report pattern that was too narrow ([evidence](evidence/tests_before_fix.txt)). A later review found that subject filters dropped human replies to routine mail. All three are fixed, and each has a test.
+The first replay ([evidence](evidence/replay_before_normalization_fix.txt)) sent the clean new case in scenario 1 to REVIEW: `Cust #062094` was rejected as malformed because the prefix regex matched `c` before `cust`. The tests then found the same bug for `Invoice` and `Customer`, plus a routine-report pattern that was too narrow ([evidence](evidence/tests_before_fix.txt)). A later check found that subject filters dropped human replies to routine mail. All three are fixed, and each has a test.
+
+An independent pre-publication review then reproduced fifteen more failures, mostly ways a wrong identity could still be written (non-final REVIEW on retry, grounding that ignored labels, a typo'd customer on an open order, two injection phrasings). They are in [`tests/test_review_findings.py`](../tests/test_review_findings.py); all failed before the fix ([evidence](evidence/review_findings_before_fix.txt)). The replay metrics above did not change, which says something about the replay: its fixture set didn't contain those attacks. The unit tests are where they now live.

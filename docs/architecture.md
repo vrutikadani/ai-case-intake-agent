@@ -5,29 +5,30 @@
 ```
 Email / event
   │
-  ├─ Idempotency ─────────── event ID already applied? → IGNORE (no model call)
+  ├─ Idempotency ─────────── event ID already decided (anything but HOLD)? → IGNORE (no model call)
   │
   ├─ Pre-filter ──────────── auto-reply header · non-case sender · routine subject (original messages only)
   │                          → IGNORE (no model call)
   │
-  ├─ Classifier (model) ──── one JSON object, validated against a schema
-  │                          unavailable → HOLD · invalid → REVIEW · not a case → IGNORE · confidence < 0.75 → REVIEW
+  ├─ Classifier (model) ──── one JSON object, validated against a schema (no extra fields)
+  │                          unavailable → HOLD · invalid → REVIEW · not a case → IGNORE
+  │                          text addressed to the model → REVIEW · confidence < 0.75 → REVIEW
   │
   ├─ Normalizer (code) ───── customer and order IDs → digits only; malformed → dropped and named
-  │                          every returned ID must appear in the email (grounding) → else REVIEW
+  │                          each ID must appear next to a label of its kind (grounding) → else REVIEW
+  │                          customer == order, or customer not in the directory → REVIEW
   │
-  ├─ Identity resolution ─── 1. CaseKey customer|order: existing open case → UPDATE · none → CREATE · closed → REVIEW
+  ├─ Identity resolution ─── 1. CaseKey customer|order: existing open case → UPDATE · closed → REVIEW
+  │                             none → CREATE, unless the order is open under another customer → REVIEW
   │   (code)                 2. thread memory (TTL, no drift, case open)    → UPDATE
   │                          3. order only, exactly one open case            → UPDATE · more than one → REVIEW
   │                          4. otherwise                                     → REVIEW
-  │
-  ├─ Decision ────────────── suspected prompt injection turns any CREATE/UPDATE into REVIEW
   │
   ├─ Write ───────────────── WRITE_TO_TRACKER=false → log only · write error → HOLD (nothing changed)
   │                          CREATE: new case, owner from routing table · UPDATE: append to history
   │                          on success: remember thread → case
   │
-  └─ Audit record ────────── exactly one per event, whatever the outcome
+  └─ Audit record ────────── exactly one per event, whatever the outcome (unexpected errors → audited HOLD)
                                       │
                                Daily summary
 ```
@@ -42,7 +43,7 @@ Email / event
 | `thread_memory.py` | Thread → case mapping with limits | A lookup on the conversation ID stored with the case |
 | `matching.py` | Identity resolution | Filter queries against the tracker list |
 | `tracker.py` | Case store: schema check once, append-only updates | The tracker list (create item / update item) |
-| `routing.py` | Owner assignment | Assignment table |
+| `routing.py` | Customer directory and owner assignment | Customer master lookup and assignment table |
 | `decision_engine.py` | `process_event`: one event per call | One flow run per incoming email |
 | `audit_log.py` | One structured record per event | A log list |
 | `summary.py` | Daily digest | A scheduled summary email |

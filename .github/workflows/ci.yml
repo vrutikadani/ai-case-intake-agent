@@ -31,7 +31,7 @@ jobs:
           git diff --exit-code demo/manifest.json
       - name: Package is standard library only (the browser demo depends on it)
         run: |
-          if grep -rnE "^(from|import) " src/case_intake --include=*.py | grep -vE "from (\.|__future__)|import (json|re|os|copy)$|import (json|re|os|copy)\b|from (dataclasses|datetime|enum|typing|collections|pathlib) "; then
+          if grep -rnE "^(from [A-Za-z_.]+ import|import [A-Za-z_.]+)" src/case_intake --include=*.py | grep -vE "from (\.|__future__)|import (json|re|os|copy)$|import (json|re|os|copy)\b|from (dataclasses|datetime|enum|typing|collections|pathlib) "; then
             echo "non-stdlib import"; exit 1
           fi
       - name: No real-looking secrets or internal domains
