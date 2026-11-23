@@ -2,7 +2,7 @@
 
 **Email → classification → deterministic case matching → auditable case state**
 
-**[Live Demo](https://vrutikadani.github.io/ai-case-intake-agent/)** · [Architecture](docs/architecture.md) · [Design decisions](docs/design-decisions.md) · [Evaluation](docs/evaluation.md) · [Failure modes](docs/failure-modes.md)
+**[Live Demo](https://vrutikadani.github.io/ai-case-intake-agent/)** · [Architecture](docs/architecture.md) · [Design decisions](docs/design-decisions.md) · [Evaluation](docs/evaluation.md) · [Failure modes](docs/failure-modes.md) · [Design context](docs/DESIGN_CONTEXT.md)
 
 AI Case Intake Agent is a reference implementation for turning operational email into structured, auditable case state. It combines deterministic pre-filters, a constrained LLM classification step, exact identifier normalization, thread-aware case matching, duplicate prevention, human review and operational logging.
 
